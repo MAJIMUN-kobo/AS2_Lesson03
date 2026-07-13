@@ -1,31 +1,49 @@
-using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 
 // === スロット管理クラス === //
 public class SlotManager : MonoBehaviour
 {
+    // === Inspector Parameter
+    [Header("* * * Reel Object.")]
+    [SerializeField] private Transform[] _reels;
+
     // === Private Value === //
-    private int[,] _slot;       // スロットの行列（二次元配列）
+    private int[,] _slot;           // スロットの行列（二次元配列）
+    private int _reelStoped;        // 停止リール番号
+    private float[] _reelAngles;    // リールの角度
 
     void Start()
     {
         // 一次元配列では1行のみのデータだが...
         //　　👉 int[] array = new int[] { 0, 1, 2, 3, 4 };
         // 二次元配列では行列のデータを持つことができる。
-        _slot = new int[,]  // スロットの初期化
-        {
-            { 0, 0, 0 },
-            { 1, 1, 1 },
-            { 2, 2, 2 },
-            { 3, 3, 3 },
-            { 4, 4, 4 }
-        };
+        // スロットの初期化
+        _slot = new int[,] { { 0, 0, 0 },{ 1, 1, 1 },{ 2, 2, 2 },{ 3, 3, 3 },{ 4, 4, 4 } };
+
+        _reelAngles = new float[ _slot.GetLength(1) ];
     }
 
     void Update()
     {
+        if( Keyboard.current.spaceKey.wasPressedThisFrame
+            || Mouse.current.leftButton.wasPressedThisFrame)
+        {   // UnityEngine.InputSystem インターフェースのボタン押下処理
+            // 👇リールのストップ番号を加算する
+            _reelStoped++;
+        }
+
+        if(Keyboard.current.enterKey.wasPressedThisFrame)
+        {
+            if(_reelStoped > 2)
+                _reelStoped = 0;
+        }
+
+        // スロットの配列を回転させる
         PlayingSlot();
+
+        // オブジェクトの角度を更新
+        RotateReelObject();
     }
 
     // === スロットのメインメソッド === //
@@ -34,9 +52,10 @@ public class SlotManager : MonoBehaviour
     {
         int reelLength = _slot.GetLength(1);
 
-        for(int x = 0; x < reelLength; x++)
+        for(int x = _reelStoped; x < reelLength; x++)
         {
             ReelLoop(x);
+            _reelAngles[x] += 360 / _slot.GetLength(0);
         }
     }
 
@@ -65,45 +84,27 @@ public class SlotManager : MonoBehaviour
         // 保存しておいた最後の値を、
         // 配列の最初[0番目]に代入する
         _slot[0, reelIndex] = temp;
+    }
 
-        Debug.Log($"_slot[0, {reelIndex}] = {_slot[0, reelIndex]}");
+    // === 各リールオブジェクトの角度を更新 === //
+    private void RotateReelObject()
+    {
+        for (int x = 0; x < _slot.GetLength(1); x++)
+        {
+            // eulerAngles の x軸を リールの角度に更新する
+            _reels[x].eulerAngles = Vector3.right * _reelAngles[x];
+        }
+    }
+
+    // === そろったリールをチェックする === //
+    // 2026-07-27 まで宿題！！
+    private bool GetHitReel(int[,] slot, int row)
+    {
+        bool hit = false;
+
+        // ヒット判定
+
+
+        return hit;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
